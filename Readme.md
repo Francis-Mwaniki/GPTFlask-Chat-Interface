@@ -17,5 +17,5 @@ python app.py
 
 ### Demo
  <p align="center">
-  <img src="./static/Pasted image.png" width="350" title="hover text">
+  <img src="./static/Pasted image.png"  title="hover text">
 </p>
