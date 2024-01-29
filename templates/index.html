@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI Autocomplete</title>
+    <link href="{{ url_for('static', filename='tailwind.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/showdown@1.9.1/dist/showdown.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Additional custom styles can be added here */
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-4">
+            The Don Draperizer
+        </h1>
+        
+        <!-- Chat area -->
+        <div class="border rounded-lg overflow-hidden bg-white shadow-lg mb-8">
+            <div class="p-4">
+                <!-- Chat messages -->
+                <div id="chat-messages" class="mb-4">
+                   
+                </div>
+                
+                <!-- Input form -->
+                <form id="message-form" class="flex items-center" >
+                    <input id="message-input" name="text" type="text" class="flex-1 border rounded-md p-2 mr-2" placeholder="Type your message...">
+                    <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-md">Send</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Additional content can be added here -->
+    </div>
+
+    <!-- JavaScript for chat functionality -->
+    <script >
+        // Function to append a message to the chat area
+        function appendMessage(message, isUser) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageClass = isUser ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800';
+            const messageAlignment = isUser ? 'flex-row-reverse' : 'flex-row';
+            const messageSender = isUser ? 'You' : 'ChatGPT';
+            const currentLocalTime = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `flex mb-2 ${messageAlignment}`;
+
+            // Convert Markdown to HTML
+            const converter = new showdown.Converter();
+            const htmlMessage = converter.makeHtml(message);
+
+            messageElement.innerHTML = `
+                <div class="rounded-lg p-3 max-w-xs break-words w-auto ${messageClass}">
+                    <p class="font-semibold">${messageSender}</p>
+                    <p>${htmlMessage}</p>
+                    <p class="text-xs text-gray-500">${currentLocalTime}</p>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageElement);
+        }
+        // Function to handle form submission
+        document.getElementById('message-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const messageInput = document.getElementById('message-input');
+    const messageText = messageInput.value.trim();
+   
+
+    if (messageText) {
+        appendMessage(messageText, true); // Add user message to chat area
+        messageInput.value = ''; // Clear input field
+        console.log("messageText: ", messageText);
+
+        // Create a FormData object and append the text field
+        const formData = new FormData();
+        formData.append('text', messageText);
+
+        // Send form data to the server
+        fetch('/autocomplete', {
+            method: 'POST',
+            body: formData // Send form data directly
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("data: ", data);
+            appendMessage(data.text, false); // Add OpenAI response to chat area
+        })
+        .catch((error) => {
+            console.error('Error because:', error);
+        });
+    }
+});
+
+    </script>
+</body>
+</html>
